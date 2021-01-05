@@ -1,4 +1,5 @@
-import Utilities
+import Utilities as Ut
+import math
 
 
 class SingleVariableLinearRegression(object):
@@ -7,7 +8,8 @@ class SingleVariableLinearRegression(object):
 
          To use:
          >>> svlr = SingleVariableLinearRegression(xvalues = some numpy array, yvalues= some values of numpy array)
-         >>> svlr.std_deviation()
+         >>> svlr.x_std_dev
+         >>> svlr.y_std_dev
          >>> svlr.r_squared()
          >>> svlr.corr() #returns Pearson correlation
          >>> svlr.x_mean()
@@ -20,23 +22,62 @@ class SingleVariableLinearRegression(object):
     def __init__(self, xvalues:list, yvalues:list):
         if xvalues is None or yvalues is None:
             raise ValueError("Neither xvalues or yvalues may be None.")
-        if len(xvalues) == 0 or len(xvalues) != len(xvalues):
-            raise ValueError("The length xvalues or yvalues may be None.")
+        if len(xvalues) == 0 or len(yvalues) == 0:
+            raise ValueError("The length xvalues or yvalues may not be zero.")
+        if len(xvalues) != len(yvalues):
+            raise ValueError("The length xvalues and yvalues must be equal.")
 
-        self._xvalues = xvalues
-        self._yvalues = yvalues
-        self._xmean = None
-        self._ymean = None
-        self._x_std_dev = None
+        self.__xvalues = xvalues
+        self.__yvalues = yvalues
+        self.__n = len(self.__xvalues)
+        self.__xmean = Ut.get_mean(self.__xvalues)
+        self.__ymean = Ut.get_mean(self.__yvalues)
+        self.__x_stddev = Ut.get_std_dev(self.__xvalues)
+        self.__y_stddev = Ut.get_std_dev(self.__yvalues)
+        self.__corr = self.__get_corr()
+        self.__intercept = self.__get_intercept()
+        self.__slope = self.__get_slope()
 
+    @property
     def x_mean(self) -> float:
-        if self._xmean is None:
-            self._xmean = self.get_mean(self._xvalues)
+        return self.__xmean
 
-        return self._xmean
-
+    @property
     def y_mean(self) -> float:
-        return self._xmean
+        return self.__ymean
+
+    @property
+    def x_stddev(self):
+        return self.__x_stddev
+
+    @property
+    def y_stddev(self):
+        return self.__y_stddev
+
+    @property
+    def corr(self):
+        return self.__corr
+
+    @property
+    def get_slope_intercept(self):
+        return self.__slope, self.__intercept
+
+    def __get_slope(self):
+        return None
+
+    def __get_intercept(self):
+        return None
+
+    def __get_corr(self):
+        xy = [x*y for x, y in (zip(self.__xvalues, self.__yvalues))]
+        xsquare = [x**2 for x in self.__xvalues]
+        ysquare = [y**2 for y in self.__yvalues]
+        covariance = (self.__n * Ut.get_sum(xy)) - (Ut.get_sum(self.__xvalues) * Ut.get_sum(self.__yvalues))
+        sigx = self.__n*Ut.get_sum(xsquare) - Ut.get_sum(self.__xvalues)**2
+        sigy = self.__n * Ut.get_sum(ysquare) - Ut.get_sum(self.__yvalues) ** 2
+
+        return covariance/math.sqrt(sigx * sigy)
+
 
 
 
