@@ -19,24 +19,25 @@ class SingleVariableLinearRegression(object):
          >>> svlr.bias
     """
 
-    def __init__(self, xvalues:list, yvalues:list):
-        if xvalues is None or yvalues is None:
-            raise ValueError("Neither xvalues or yvalues may be None.")
-        if len(xvalues) == 0 or len(yvalues) == 0:
-            raise ValueError("The length xvalues or yvalues may not be zero.")
-        if len(xvalues) != len(yvalues):
-            raise ValueError("The length xvalues and yvalues must be equal.")
+    def __init__(self, xy_pairs: dict):
+        if len(xy_pairs) < 2:
+            raise ValueError("The length xy_pairs may not be zero.")
+        if None in xy_pairs.keys() or None in xy_pairs.values():
+            raise ValueError("xy_pairs may not contain None")
+        if len([i for i in xy_pairs.keys() if type(i) is not float and type(i) is not int]) != 0:
+            raise ValueError("Keys in xy_pairs may only contain floats or ints")
+        if len([i for i in xy_pairs.values() if type(i) is not float and type(i) is not int]) != 0:
+            raise ValueError("Values in xy_pairs may only contain floats or ints")
 
-        self.__xvalues = xvalues
-        self.__yvalues = yvalues
+        self.__xy_pairs = xy_pairs
+        self.__xvalues = xy_pairs.keys()
+        self.__yvalues = xy_pairs.values()
         self.__n = len(self.__xvalues)
         self.__xmean = Ut.get_mean(self.__xvalues)
         self.__ymean = Ut.get_mean(self.__yvalues)
         self.__x_stddev = Ut.get_std_dev(self.__xvalues)
         self.__y_stddev = Ut.get_std_dev(self.__yvalues)
         self.__corr = self.__get_corr()
-        self.__intercept = self.__get_intercept()
-        self.__slope = self.__get_slope()
 
     @property
     def x_mean(self) -> float:
@@ -58,15 +59,20 @@ class SingleVariableLinearRegression(object):
     def corr(self):
         return self.__corr
 
-    @property
     def get_slope_intercept(self):
-        return self.__slope, self.__intercept
+        cv = Ut.get_sum([(x-self.__xmean) * (y-self.__xmean) for x, y in (zip(self.__xvalues, self.__yvalues))])
+        sv = Ut.get_sum([(x-self.__xmean)**2 for x in self.__xvalues])
+        slope = cv/sv
 
-    def __get_slope(self):
-        return None
+        intercept = None
+        if 0.0 in self.__xvalues:
+            print('found zero')
+            intercept = self.__xy_pairs[0.0]
+        else:
+            intercept = -slope * self.__xvalues[0] + self.__yvalues[0]
 
-    def __get_intercept(self):
-        return None
+
+        return slope, intercept
 
     def __get_corr(self):
         xy = [x*y for x, y in (zip(self.__xvalues, self.__yvalues))]
